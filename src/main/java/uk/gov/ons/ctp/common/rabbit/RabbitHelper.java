@@ -9,6 +9,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import uk.gov.ons.ctp.common.config.YmlConfigReader;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
@@ -32,7 +33,9 @@ import uk.gov.ons.ctp.common.event.model.EventPayload;
 public class RabbitHelper {
   private static final Logger log = LoggerFactory.getLogger(RabbitHelper.class);
 
-  private static RabbitHelper rabbitInteraction = null;
+  private static final String RABBIT_YML_FILENAME = "rabbitmq.yml";
+
+  private static RabbitHelper instance = null;
 
   private Connection rabbit;
   private Channel channel;
@@ -41,8 +44,9 @@ public class RabbitHelper {
   private EventPublisher eventPublisher;
 
   private RabbitHelper(RabbitConnectionDetails rabbitDetails, String exchange) throws CTPException {
+
     ConnectionFactory factory = new ConnectionFactory();
-    factory.setUsername(rabbitDetails.getUser());
+    factory.setUsername(rabbitDetails.getUsername());
     factory.setPassword(rabbitDetails.getPassword());
     factory.setHost(rabbitDetails.getHost());
     factory.setPort(rabbitDetails.getPort());
@@ -56,32 +60,30 @@ public class RabbitHelper {
       throw new CTPException(Fault.SYSTEM_ERROR, e, errorMessage);
     }
 
-    NativeRabbitEventSender sender = new NativeRabbitEventSender(rabbitDetails, exchange);
+    NativeRabbitEventSender sender = new NativeRabbitEventSender(this.rabbit, exchange);
     eventPublisher = new EventPublisher(sender);
 
     this.exchange = exchange;
   }
 
   public static synchronized RabbitHelper instance(String exchange) throws CTPException {
-    if (rabbitInteraction == null) {
-      RabbitConnectionDetails rabbitDetails = new RabbitConnectionDetails();
-      rabbitDetails.setUser(System.getenv("RABBIT_USER"));
-      rabbitDetails.setPassword(System.getenv("RABBIT_PASSWORD"));
-      rabbitDetails.setHost(System.getenv("RABBIT_HOST"));
-      rabbitDetails.setPort(Integer.parseInt(System.getenv("RABBIT_PORT")));
+    if (instance == null) {
+      YmlConfigReader ymlConfig = new YmlConfigReader(RABBIT_YML_FILENAME);
+      RabbitConnectionDetails rabbitDetails =
+          ymlConfig.convertToObject(RabbitConnectionDetails.class);
 
-      rabbitInteraction = new RabbitHelper(rabbitDetails, exchange);
+      instance = new RabbitHelper(rabbitDetails, exchange);
     }
 
-    if (!rabbitInteraction.exchange.equals(exchange)) {
+    if (!instance.exchange.equals(exchange)) {
       throw new CTPException(
           Fault.BAD_REQUEST, "Cannot switch existing connection to different exchange");
     }
 
     // Make sure channel has been created
-    rabbitInteraction.createChannelIfNeeded();
+    instance.createChannelIfNeeded();
 
-    return rabbitInteraction;
+    return instance;
   }
 
   // Make sure channel has been created. It may need to be re-established if a previous command
@@ -127,7 +129,7 @@ public class RabbitHelper {
       }
     }
 
-    RabbitHelper.rabbitInteraction = null;
+    RabbitHelper.instance = null;
   }
 
   /**

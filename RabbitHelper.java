@@ -157,7 +157,8 @@ public class RabbitHelper {
       }
 
       // Use routing key for queue name as well as binding. This gives the queue a 'fake' name, but
-      // it saves the Cucumber tests from having to decide on a queue name
+      // it
+      // saves the Cucumber tests from having to decide on a queue name
       String routingKeyName = routingKey.getKey();
       queueName = routingKeyName;
 
@@ -275,7 +276,7 @@ public class RabbitHelper {
       throws CTPException {
     String message = getMessage(queueName, maxWaitTimeMillis);
 
-    // Return to caller if nothing read from queue
+    // Bail out if nothing read from queue
     if (message == null) {
       log.info(
           "Rabbit getMessage. Message is null. Unable to convert to class '"
@@ -284,11 +285,11 @@ public class RabbitHelper {
       return null;
     }
 
-    // Use Jackson to convert from a Json message to a Java object
-    try {
-      log.info("Rabbit getMessage. Converting result into class '" + clazz.getName() + "'");
-      return mapper.readValue(message, clazz);
+    log.info("Rabbit getMessage. Converting result into class '" + clazz.getName() + "'");
 
+    // Use Jackson to convert from Json to object
+    try {
+      return mapper.readValue(message, clazz);
     } catch (IOException e) {
       String errorMessage = "Failed to convert message to object of type '" + clazz.getName() + "'";
       log.error(errorMessage, e);
@@ -318,3 +319,4 @@ public class RabbitHelper {
     return result == null ? null : new String(result.getBody());
   }
 }
+

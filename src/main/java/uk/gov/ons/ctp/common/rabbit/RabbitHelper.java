@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.common.rabbit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import com.rabbitmq.client.AMQP.Queue.PurgeOk;
@@ -42,6 +43,8 @@ public class RabbitHelper {
   private String exchange;
 
   private EventPublisher eventPublisher;
+
+  private ObjectMapper mapper = new ObjectMapper();
 
   private RabbitHelper(RabbitConnectionDetails rabbitDetails, String exchange) throws CTPException {
 
@@ -154,8 +157,7 @@ public class RabbitHelper {
       }
 
       // Use routing key for queue name as well as binding. This gives the queue a 'fake' name, but
-      // it
-      // saves the Cucumber tests from having to decide on a queue name
+      // it saves the Cucumber tests from having to decide on a queue name
       String routingKeyName = routingKey.getKey();
       queueName = routingKeyName;
 
@@ -255,6 +257,43 @@ public class RabbitHelper {
     } while (messageBody == null && System.currentTimeMillis() < timeoutLimit);
 
     return messageBody;
+  }
+
+  /**
+   * Reads a message from the named queue and convert it to a Java object. This method will wait for
+   * up to the specified number of milliseconds for a message to appear on the queue.
+   *
+   * @param queueName is the name of the queue to read from.
+   * @param clazz is the class that the message should be converted to.
+   * @param maxWaitTimeMillis is the maximum amount of time the caller is prepared to wait for the
+   *     message to appear.
+   * @return an object of the specified type, or null if no message was found before the timeout
+   *     expired.
+   * @throws CTPException if Rabbit threw an exception when we attempted to read a message.
+   */
+  public <T> T getMessage(String queueName, Class<T> clazz, long maxWaitTimeMillis)
+      throws CTPException {
+    String message = getMessage(queueName, maxWaitTimeMillis);
+
+    // Return to caller if nothing read from queue
+    if (message == null) {
+      log.info(
+          "Rabbit getMessage. Message is null. Unable to convert to class '"
+              + clazz.getName()
+              + "'");
+      return null;
+    }
+
+    // Use Jackson to convert from a Json message to a Java object
+    try {
+      log.info("Rabbit getMessage. Converting result into class '" + clazz.getName() + "'");
+      return mapper.readValue(message, clazz);
+
+    } catch (IOException e) {
+      String errorMessage = "Failed to convert message to object of type '" + clazz.getName() + "'";
+      log.error(errorMessage, e);
+      throw new CTPException(Fault.SYSTEM_ERROR, e, errorMessage);
+    }
   }
 
   /**

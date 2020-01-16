@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.common.util;
 
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -47,6 +48,7 @@ public class WebDriverUtils {
         setupFirefoxOSWebdriver(os);
         driver = getFirefoxDriver(isHeadless, os, desiredCapabilities);
     }
+    driver.manage().timeouts().implicitlyWait(1, TimeUnit.MICROSECONDS);
     return driver;
   }
 

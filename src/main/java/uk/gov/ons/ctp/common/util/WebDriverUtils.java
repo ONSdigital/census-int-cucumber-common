@@ -17,14 +17,14 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 public class WebDriverUtils {
 
   public static WebDriver getWebDriver(
-      final WebDriverType webDriverType, final boolean isHeadless) {
+      final WebDriverType webDriverType, final boolean isHeadless, final Level loggingLevel) {
     LoggingPreferences logs = new LoggingPreferences();
-    logs.enable(LogType.BROWSER, Level.ALL);
-    logs.enable(LogType.CLIENT, Level.ALL);
-    logs.enable(LogType.DRIVER, Level.ALL);
-    logs.enable(LogType.PERFORMANCE, Level.ALL);
-    logs.enable(LogType.PROFILER, Level.ALL);
-    logs.enable(LogType.SERVER, Level.ALL);
+    logs.enable(LogType.BROWSER, loggingLevel);
+    logs.enable(LogType.CLIENT, loggingLevel);
+    logs.enable(LogType.DRIVER, loggingLevel);
+    logs.enable(LogType.PERFORMANCE, loggingLevel);
+    logs.enable(LogType.PROFILER, loggingLevel);
+    logs.enable(LogType.SERVER, loggingLevel);
 
     DesiredCapabilities desiredCapabilities = DesiredCapabilities.firefox();
     desiredCapabilities.setCapability(CapabilityType.LOGGING_PREFS, logs);
@@ -34,6 +34,7 @@ public class WebDriverUtils {
 
     switch (webDriverType) {
       case EDGE:
+        setupEdgeOSWebdriver(os);
         driver = getEdgeDriver(isHeadless, os, desiredCapabilities);
         break;
 
@@ -52,11 +53,6 @@ public class WebDriverUtils {
   private static EdgeDriver getEdgeDriver(
       final boolean isHeadless, final String os, final DesiredCapabilities desiredCapabilities) {
     EdgeOptions options = new EdgeOptions();
-    /**
-     * This if statement was added because the latest stable version of firefox gets installed as
-     * "/usr/bin/firefox-esr" and then a symbolic link for it, named firefox, is created in the same
-     * location - see the Dockerfile.
-     */
     if (os.contains("linux")) {
       options.setCapability("headless", isHeadless);
       options.setCapability("binary", "/usr/bin/edge");
@@ -68,11 +64,6 @@ public class WebDriverUtils {
   private static FirefoxDriver getFirefoxDriver(
       final boolean isHeadless, final String os, final DesiredCapabilities desiredCapabilities) {
     FirefoxOptions options = new FirefoxOptions();
-    /**
-     * This if statement was added because the latest stable version of firefox gets installed as
-     * "/usr/bin/firefox-esr" and then a symbolic link for it, named firefox, is created in the same
-     * location - see the Dockerfile.
-     */
     if (os.contains("linux")) {
       options.setBinary("/usr/bin/firefox");
     }
@@ -85,11 +76,6 @@ public class WebDriverUtils {
   private static ChromeDriver getChromeDriver(
       final boolean isHeadless, final String os, final DesiredCapabilities desiredCapabilities) {
     ChromeOptions options = new ChromeOptions();
-    /**
-     * This if statement was added because the latest stable version of firefox gets installed as
-     * "/usr/bin/firefox-esr" and then a symbolic link for it, named firefox, is created in the same
-     * location - see the Dockerfile.
-     */
     if (os.contains("linux")) {
       options.setBinary("/usr/bin/chrome");
     }

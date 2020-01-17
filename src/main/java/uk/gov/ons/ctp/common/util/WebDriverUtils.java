@@ -19,16 +19,6 @@ public class WebDriverUtils {
 
   public static WebDriver getWebDriver(
       final WebDriverType webDriverType, final boolean isHeadless, final Level loggingLevel) {
-    LoggingPreferences logs = new LoggingPreferences();
-    logs.enable(LogType.BROWSER, loggingLevel);
-    logs.enable(LogType.CLIENT, loggingLevel);
-    logs.enable(LogType.DRIVER, loggingLevel);
-    logs.enable(LogType.PERFORMANCE, loggingLevel);
-    logs.enable(LogType.PROFILER, loggingLevel);
-    logs.enable(LogType.SERVER, loggingLevel);
-
-    DesiredCapabilities desiredCapabilities = DesiredCapabilities.firefox();
-    desiredCapabilities.setCapability(CapabilityType.LOGGING_PREFS, logs);
 
     WebDriver driver;
     final String os = System.getProperty("os.name").toLowerCase();
@@ -36,17 +26,25 @@ public class WebDriverUtils {
     switch (webDriverType) {
       case EDGE:
         setupEdgeOSWebdriver(os);
-        driver = getEdgeDriver(isHeadless, os, desiredCapabilities);
+        driver =
+            getEdgeDriver(
+                isHeadless, os, getLoggingCapabilities(DesiredCapabilities.edge(), loggingLevel));
         break;
 
       case CHROME:
         setupChromeOSWebdriver(os);
-        driver = getChromeDriver(isHeadless, os, desiredCapabilities);
+        driver =
+            getChromeDriver(
+                isHeadless, os, getLoggingCapabilities(DesiredCapabilities.chrome(), loggingLevel));
         break;
 
       default:
         setupFirefoxOSWebdriver(os);
-        driver = getFirefoxDriver(isHeadless, os, desiredCapabilities);
+        driver =
+            getFirefoxDriver(
+                isHeadless,
+                os,
+                getLoggingCapabilities(DesiredCapabilities.firefox(), loggingLevel));
     }
     driver.manage().timeouts().implicitlyWait(1, TimeUnit.MICROSECONDS);
     return driver;
@@ -128,5 +126,23 @@ public class WebDriverUtils {
           "Unsupported platform - gecko driver not available for platform [" + os + "]");
       System.exit(1);
     }
+  }
+
+  private static DesiredCapabilities getLoggingCapabilities(
+      final DesiredCapabilities desiredCapabilities, final Level loggingLevel) {
+    desiredCapabilities.setCapability(
+        CapabilityType.LOGGING_PREFS, getLoggingPreferences(loggingLevel));
+    return desiredCapabilities;
+  }
+
+  private static LoggingPreferences getLoggingPreferences(final Level loggingLevel) {
+    LoggingPreferences logs = new LoggingPreferences();
+    logs.enable(LogType.BROWSER, loggingLevel);
+    logs.enable(LogType.CLIENT, loggingLevel);
+    logs.enable(LogType.DRIVER, loggingLevel);
+    logs.enable(LogType.PERFORMANCE, loggingLevel);
+    logs.enable(LogType.PROFILER, loggingLevel);
+    logs.enable(LogType.SERVER, loggingLevel);
+    return logs;
   }
 }

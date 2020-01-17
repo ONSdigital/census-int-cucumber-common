@@ -81,6 +81,7 @@ public class WebDriverUtils {
     }
     options.setHeadless(isHeadless);
     options.merge(desiredCapabilities);
+    options.setAcceptInsecureCerts(true);
     return new ChromeDriver(options);
   }
 

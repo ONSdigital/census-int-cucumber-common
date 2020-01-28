@@ -18,7 +18,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 public class WebDriverUtils {
 
   public static WebDriver getWebDriver(
-      final WebDriverType webDriverType, final boolean isHeadless, final Level loggingLevel) {
+      final WebDriverType webDriverType, final boolean isHeadless, final String loggingLevel) {
 
     WebDriver driver;
     final String os = System.getProperty("os.name").toLowerCase();
@@ -26,62 +26,52 @@ public class WebDriverUtils {
     switch (webDriverType) {
       case EDGE:
         setupEdgeOSWebdriver(os);
-        driver =
-            getEdgeDriver(
-                isHeadless, os, getLoggingCapabilities(DesiredCapabilities.edge(), loggingLevel));
+        driver = getEdgeDriver(isHeadless, os, loggingLevel);
         break;
 
       case CHROME:
         setupChromeOSWebdriver(os);
-        driver =
-            getChromeDriver(
-                isHeadless, os, getLoggingCapabilities(DesiredCapabilities.chrome(), loggingLevel));
+        driver = getChromeDriver(isHeadless, os);
         break;
 
       default:
         setupFirefoxOSWebdriver(os);
-        driver =
-            getFirefoxDriver(
-                isHeadless,
-                os,
-                getLoggingCapabilities(DesiredCapabilities.firefox(), loggingLevel));
+        driver = getFirefoxDriver(isHeadless, os, loggingLevel);
     }
     driver.manage().timeouts().implicitlyWait(1, TimeUnit.MICROSECONDS);
     return driver;
   }
 
   private static EdgeDriver getEdgeDriver(
-      final boolean isHeadless, final String os, final DesiredCapabilities desiredCapabilities) {
+      final boolean isHeadless, final String os, final String logingLevel) {
     EdgeOptions options = new EdgeOptions();
+
     if (os.contains("linux")) {
       options.setCapability("headless", isHeadless);
       options.setCapability("binary", "/usr/bin/edge");
     }
-    options.merge(desiredCapabilities);
     return new EdgeDriver(options);
   }
 
   private static FirefoxDriver getFirefoxDriver(
-      final boolean isHeadless, final String os, final DesiredCapabilities desiredCapabilities) {
+      final boolean isHeadless, final String os, final String loggingLevel) {
     FirefoxOptions options = new FirefoxOptions();
     if (os.contains("linux")) {
       options.setBinary("/usr/bin/firefox");
     }
     options.setHeadless(isHeadless);
-    options.setLogLevel(FirefoxDriverLogLevel.DEBUG);
-    options.merge(desiredCapabilities);
+    options.setLogLevel(FirefoxDriverLogLevel.valueOf(loggingLevel));
     return new FirefoxDriver(options);
   }
 
-  private static ChromeDriver getChromeDriver(
-      final boolean isHeadless, final String os, final DesiredCapabilities desiredCapabilities) {
+  private static ChromeDriver getChromeDriver(final boolean isHeadless, final String os) {
     ChromeOptions options = new ChromeOptions();
     if (os.contains("linux")) {
       options.setBinary("/usr/bin/chrome");
     }
     options.setHeadless(isHeadless);
-    options.merge(desiredCapabilities);
     options.setAcceptInsecureCerts(true);
+    options.merge(getChromeLoggingCapabilities());
     return new ChromeDriver(options);
   }
 
@@ -129,21 +119,20 @@ public class WebDriverUtils {
     }
   }
 
-  private static DesiredCapabilities getLoggingCapabilities(
-      final DesiredCapabilities desiredCapabilities, final Level loggingLevel) {
-    desiredCapabilities.setCapability(
-        CapabilityType.LOGGING_PREFS, getLoggingPreferences(loggingLevel));
+  private static DesiredCapabilities getChromeLoggingCapabilities() {
+    DesiredCapabilities desiredCapabilities = DesiredCapabilities.chrome();
+    desiredCapabilities.setCapability(CapabilityType.LOGGING_PREFS, getLoggingPreferences());
     return desiredCapabilities;
   }
 
-  private static LoggingPreferences getLoggingPreferences(final Level loggingLevel) {
+  private static LoggingPreferences getLoggingPreferences() {
     LoggingPreferences logs = new LoggingPreferences();
-    logs.enable(LogType.BROWSER, loggingLevel);
-    logs.enable(LogType.CLIENT, loggingLevel);
-    logs.enable(LogType.DRIVER, loggingLevel);
-    logs.enable(LogType.PERFORMANCE, loggingLevel);
-    logs.enable(LogType.PROFILER, loggingLevel);
-    logs.enable(LogType.SERVER, loggingLevel);
+    logs.enable(LogType.BROWSER, Level.ALL);
+    logs.enable(LogType.CLIENT, Level.OFF);
+    logs.enable(LogType.DRIVER, Level.ALL);
+    logs.enable(LogType.PERFORMANCE, Level.OFF);
+    logs.enable(LogType.PROFILER, Level.OFF);
+    logs.enable(LogType.SERVER, Level.OFF);
     return logs;
   }
 }

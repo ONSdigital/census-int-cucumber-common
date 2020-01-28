@@ -5,6 +5,7 @@ import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -30,18 +31,28 @@ public class Wait {
   }
 
   private void logAndWaitUntilCondition(
-      ExpectedCondition condition, String timeoutMessage, int timeout) {
+      final ExpectedCondition condition,
+      final String timeoutMessage,
+      final int timeout,
+      final String elementName) {
+    String currentPage = "";
     try {
-      log.info("Current Page: " + driver.getCurrentUrl());
+      currentPage = driver.getCurrentUrl();
       waitUntilCondition(condition, timeoutMessage, timeout);
-    } catch (TimeoutException timeoutException) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("Timeout failed looking for: " + condition.toString());
-      buffer.append("Current URL when errored: " + driver.getCurrentUrl());
-      Document doc = Jsoup.parse(driver.getPageSource());
-      buffer.append("Current Page Title: " + doc.title());
-      buffer.append("Current Page Body: " + doc.body().html());
-      throw new TimeoutException(buffer.toString(), timeoutException);
+    } catch (RuntimeException timeoutException) {
+      log.info("Current Page: " + currentPage);
+      log.error("Timeout failed looking for: " + condition.toString());
+      log.error("Current URL when errored: " + driver.getCurrentUrl());
+      if (!elementName.isEmpty()) {
+        log.error("Looking for class / field: " + elementName);
+      }
+      final Document doc = Jsoup.parse(driver.getPageSource());
+      final Elements scripts = doc.getElementsByTag("script");
+      scripts.remove();
+      final Elements links = doc.getElementsByTag("link");
+      links.remove();
+      log.error("Current Page HTML (without scripts or links): " + "\r\n" + doc.html());
+      throw new TimeoutException(elementName, timeoutException);
     }
   }
 
@@ -56,7 +67,7 @@ public class Wait {
     ExpectedCondition<Object> condition =
         ExpectedConditions.jsReturnsValue("return document.readyState==\"complete\";");
     String timeoutMessage = "Page didn't load after " + timeout + " seconds.";
-    waitUntilCondition(condition, timeoutMessage, timeout);
+    logAndWaitUntilCondition(condition, timeoutMessage, timeout, "");
   }
 
   public void forLoading() {
@@ -67,7 +78,7 @@ public class Wait {
     ExpectedCondition<WebElement> condition = ExpectedConditions.visibilityOf(webElement);
     String timeoutMessage =
         webElementName + " wasn't displayed after " + Integer.toString(timeout) + " seconds.";
-    waitUntilCondition(condition, timeoutMessage, timeout);
+    logAndWaitUntilCondition(condition, timeoutMessage, timeout, webElementName);
   }
 
   public void forElementToBeDisplayed(WebElement webElement, String webElementName) {
@@ -82,7 +93,7 @@ public class Wait {
             + " elements were not displayed after "
             + Integer.toString(timeout)
             + " seconds.";
-    waitUntilCondition(condition, timeoutMessage, timeout);
+    logAndWaitUntilCondition(condition, timeoutMessage, timeout, elementName);
   }
 
   public void forPresenceOfElements(By elementLocator, String elementName) {

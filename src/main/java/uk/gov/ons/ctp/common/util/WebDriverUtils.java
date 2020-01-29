@@ -56,12 +56,27 @@ public class WebDriverUtils {
   private static FirefoxDriver getFirefoxDriver(
       final boolean isHeadless, final String os, final String loggingLevel) {
     // Does not need the deprecated DesiredCapabilities....
+    // FirefoxOptions options = new FirefoxOptions();
+    // if (os.contains("linux")) {
+    //  options.setBinary("/usr/bin/firefox");
+    // }
+    // options.setHeadless(isHeadless);
+    // options.setLogLevel(FirefoxDriverLogLevel.valueOf(loggingLevel));
+    // return new FirefoxDriver(options);
+
     FirefoxOptions options = new FirefoxOptions();
-    if (os.contains("linux")) {
+    options.setHeadless(true);
+    String os2 = System.getProperty("os.name").toLowerCase();
+    /**
+     * This if statement was added because the latest stable version of firefox gets installed as
+     * "/usr/bin/firefox-esr" and then a symbolic link for it, named firefox, is created in the same
+     * location - see the Dockerfile.
+     */
+    if (os2.contains("linux")) {
       options.setBinary("/usr/bin/firefox");
     }
     options.setHeadless(isHeadless);
-    options.setLogLevel(FirefoxDriverLogLevel.valueOf(loggingLevel));
+    options.setLogLevel(FirefoxDriverLogLevel.ERROR);
     return new FirefoxDriver(options);
   }
 

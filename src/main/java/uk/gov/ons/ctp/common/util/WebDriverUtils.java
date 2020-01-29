@@ -55,13 +55,14 @@ public class WebDriverUtils {
 
   private static FirefoxDriver getFirefoxDriver(
       final boolean isHeadless, final String os, final String loggingLevel) {
+    // Does not need the deprecated DesiredCapabilities....
     FirefoxOptions options = new FirefoxOptions();
     if (os.contains("linux")) {
       options.setBinary("/usr/bin/firefox");
     }
     options.setHeadless(isHeadless);
     options.setLogLevel(FirefoxDriverLogLevel.valueOf(loggingLevel));
-    return new FirefoxDriver();
+    return new FirefoxDriver(options);
   }
 
   private static ChromeDriver getChromeDriver(final boolean isHeadless, final String os) {

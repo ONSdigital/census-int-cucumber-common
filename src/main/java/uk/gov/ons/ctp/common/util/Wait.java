@@ -31,7 +31,7 @@ public class Wait {
   }
 
   private void logAndWaitUntilCondition(
-      final ExpectedCondition condition,
+      final ExpectedCondition<?> condition,
       final String timeoutMessage,
       final int timeout,
       final String elementName) {
@@ -56,8 +56,8 @@ public class Wait {
     }
   }
 
-  private void waitUntilCondition(ExpectedCondition condition, String timeoutMessage, int timeout)
-      throws TimeoutException {
+  private void waitUntilCondition(
+      ExpectedCondition<?> condition, String timeoutMessage, int timeout) throws TimeoutException {
     WebDriverWait wait = new WebDriverWait(driver, timeout);
     wait.withMessage(timeoutMessage);
     wait.until(condition);

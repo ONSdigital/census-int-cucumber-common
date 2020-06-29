@@ -20,6 +20,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.NativeRabbitEventSender;
 import uk.gov.ons.ctp.common.event.RabbitConnectionDetails;
 import uk.gov.ons.ctp.common.event.model.EventPayload;
+import uk.gov.ons.ctp.common.event.persistence.VoidEventPersistence;
 
 /**
  * This is a test support class for interacting with RabbitMQ.
@@ -64,7 +65,8 @@ public class RabbitHelper {
     }
 
     NativeRabbitEventSender sender = new NativeRabbitEventSender(this.rabbit, exchange);
-    eventPublisher = new EventPublisher(sender);
+    VoidEventPersistence eventPersistence = new VoidEventPersistence();
+    eventPublisher = new EventPublisher(sender, eventPersistence);
 
     this.exchange = exchange;
   }

@@ -71,14 +71,12 @@
       <version>1.12.1</version>
     </dependency>
 
-
-    <!-- ONS libraries -->
-
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
-      <artifactId>event-publisher</artifactId>
-      <version>0.0.40</version>
+      <artifactId>framework</artifactId>
+      <version>0.0.62</version>
     </dependency>
+
   </dependencies>
 
   <build>

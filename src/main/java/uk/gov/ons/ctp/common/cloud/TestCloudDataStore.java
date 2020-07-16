@@ -11,7 +11,7 @@ import uk.gov.ons.ctp.common.error.CTPException;
 @Component
 public class TestCloudDataStore implements CloudDataStore {
 
-  @Autowired private CloudDataStore cloudDataStore;
+  @Autowired private FirestoreDataStore cloudDataStore;
 
   @Override
   public void deleteObject(String schema, String key) throws CTPException {

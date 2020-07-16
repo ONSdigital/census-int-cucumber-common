@@ -70,12 +70,20 @@
       <artifactId>jsoup</artifactId>
       <version>1.12.1</version>
     </dependency>
-
+    <!-- ONS dependencies start -->
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>framework</artifactId>
       <version>0.0.62</version>
     </dependency>
+
+    <dependency>
+      <groupId>uk.gov.ons.ctp.integration.common</groupId>
+      <artifactId>test-framework</artifactId>
+      <version>0.0.17</version>
+    </dependency>
+
+    <!-- ONS dependencies end -->
 
   </dependencies>
 

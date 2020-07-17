@@ -70,15 +70,21 @@
       <artifactId>jsoup</artifactId>
       <version>1.12.1</version>
     </dependency>
-
-
-    <!-- ONS libraries -->
+    <!-- ONS dependencies start -->
+    <dependency>
+      <groupId>uk.gov.ons.ctp.integration.common</groupId>
+      <artifactId>framework</artifactId>
+      <version>0.0.62</version>
+    </dependency>
 
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
-      <artifactId>event-publisher</artifactId>
-      <version>0.0.40</version>
+      <artifactId>test-framework</artifactId>
+      <version>0.0.17</version>
     </dependency>
+
+    <!-- ONS dependencies end -->
+
   </dependencies>
 
   <build>

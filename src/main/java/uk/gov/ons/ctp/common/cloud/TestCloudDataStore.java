@@ -6,6 +6,8 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.WriteResult;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -73,6 +75,17 @@ public class TestCloudDataStore implements CloudDataStore {
     }
   }
 
+  /**
+   * Wait for an object to appear in the cloud data store.
+   *
+   * <p>See {@link FirestoreWait} for more details on behaviour.
+   *
+   * @param collection the collection name
+   * @param key the key of the object
+   * @param timeoutMillis timeout in milliseconds
+   * @return true if the object is found; false if the object is not found within the timeout
+   * @throws CTPException on error.
+   */
   public boolean waitForObject(String collection, String key, long timeoutMillis)
       throws CTPException {
 
@@ -90,10 +103,15 @@ public class TestCloudDataStore implements CloudDataStore {
   private int deleteBatch(CollectionReference collection) {
     int deleted = 0;
     try {
-      ApiFuture<QuerySnapshot> future = collection.limit(DELETION_BATCH_SIZE).get();
-      List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+      List<ApiFuture<WriteResult>> deleteFutures = new ArrayList<>();
+      ApiFuture<QuerySnapshot> batchCollectionFuture = collection.limit(DELETION_BATCH_SIZE).get();
+      List<QueryDocumentSnapshot> documents = batchCollectionFuture.get().getDocuments();
       for (QueryDocumentSnapshot document : documents) {
-        document.getReference().delete();
+        deleteFutures.add(document.getReference().delete());
+      }
+      // wait for all deletes to finish
+      for (var f : deleteFutures) {
+        f.get();
         ++deleted;
       }
     } catch (Exception e) {

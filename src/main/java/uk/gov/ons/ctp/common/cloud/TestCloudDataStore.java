@@ -33,11 +33,11 @@ public class TestCloudDataStore implements CloudDataStore {
     CollectionReference collection = firestore.collection(schema);
 
     long totalDeleted = 0;
-    int batchDeleted = 0;
+    int numDeletedInBatch = 0;
     do {
-      batchDeleted = deleteBatch(collection);
-      totalDeleted += batchDeleted;
-    } while (batchDeleted >= DELETION_BATCH_SIZE);
+      numDeletedInBatch = deleteBatch(collection);
+      totalDeleted += numDeletedInBatch;
+    } while (numDeletedInBatch >= DELETION_BATCH_SIZE);
 
     return totalDeleted;
   }
